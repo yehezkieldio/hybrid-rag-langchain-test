@@ -1,0 +1,45 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: rag_db
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-raguser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ragpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-ragdb}
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - test-rag-network
+  neo4j:
+    image: neo4j:latest
+    container_name: rag_neo4j
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/password}
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    networks:
+      - test-rag-network
+networks:
+  test-rag-network:
+    name: test-rag-network
+    driver: bridge
+volumes:
+  postgres_data:
+    name: test-rag-postgres-data
+  neo4j_data:
+    name: test-rag-neo4j-data
+  neo4j_logs:
+    name: test-rag-neo4j-logs
